@@ -35,6 +35,7 @@ const icons = {
 
 		linux: {
 			default: require('../../img/icons/IconTrayLinux.png'),
+			attention: require('../../img/icons/IconTrayLinux-attention.png'),
 			light: require('../../img/icons/IconTrayLinuxLight.png'),
 			dark: require('../../img/icons/IconTrayLinuxDark.png'),
 		},
@@ -42,14 +43,28 @@ const icons = {
 }
 
 /**
+ * Get tray icon asset path (webpack-resolved).
+ *
+ * @param {{ attention?: boolean }} [options]
+ */
+function getTrayIconPath(options = {}) {
+	const { attention = false } = options
+	const monochrome = getAppConfig('monochromeTrayIcon')
+	const theme = nativeTheme.shouldUseDarkColors ? 'dark' : 'light'
+
+	if (platform === 'linux' && attention && !monochrome) {
+		return icons.tray.linux.attention
+	}
+
+	const kind = monochrome ? theme : 'default'
+	return icons.tray[platform][kind]
+}
+
+/**
  * Get tray icon
  */
 function getTrayIcon() {
-	const monochrome = getAppConfig('monochromeTrayIcon')
-	const theme = nativeTheme.shouldUseDarkColors ? 'dark' : 'light'
-	const kind = monochrome ? theme : 'default'
-
-	return icons.tray[platform][kind]
+	return getTrayIconPath()
 }
 
 /**
@@ -68,5 +83,6 @@ function getBrowserWindowIcon() {
 
 module.exports = {
 	getTrayIcon,
+	getTrayIconPath,
 	getBrowserWindowIcon,
 }

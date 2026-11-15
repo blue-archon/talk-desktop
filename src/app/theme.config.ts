@@ -3,10 +3,35 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { BrowserWindow, ipcMain, nativeTheme } from 'electron'
+import { BrowserWindow, nativeTheme } from 'electron'
 import { getAppConfig, onAppConfigChange } from './AppConfig.ts'
+import { resolveMainBackground } from '../shared/themeColors.js'
 
-onAppConfigChange('theme', applyTheme)
+let windowBackgroundListenersReady = false
+
+onAppConfigChange('theme', () => {
+	applyTheme()
+	if (windowBackgroundListenersReady) {
+		applyWindowBackgrounds()
+	}
+})
+
+/**
+ * Register native theme listeners after AppConfig is loaded.
+ * Must not run at import time — nativeTheme may emit before config init.
+ */
+export function initWindowBackgroundHandling() {
+	if (windowBackgroundListenersReady) {
+		return
+	}
+	windowBackgroundListenersReady = true
+
+	nativeTheme.on('updated', () => {
+		if (getAppConfig('theme') === 'default') {
+			applyWindowBackgrounds()
+		}
+	})
+}
 
 /**
  * Apply the application theme based on the AppConfig
@@ -14,24 +39,33 @@ onAppConfigChange('theme', applyTheme)
 export function applyTheme() {
 	const theme = getAppConfig('theme')
 
+	// TODO: add high-contrast themes
 	const configToNativeTheme = {
 		default: 'system',
 		dark: 'dark',
 		light: 'light',
+		breezetwilight: 'light',
 	} as const
 
 	nativeTheme.themeSource = configToNativeTheme[theme]
 }
 
-// Unlike `prefers-color-scheme`, Electron does not set `prefers-contrast` according to nativeTheme.shouldUseHighContrastColors
-// Providing it via IPC to enable high contrast theme manually ...
-
-nativeTheme.on('updated', () => {
-	for (const browserWindow of BrowserWindow.getAllWindows()) {
-		browserWindow.webContents.send('app:prefersContrastMore:change', nativeTheme.shouldUseHighContrastColors)
+/**
+ * Electron paints the native window background during resize before the renderer catches up.
+ * Keep it aligned with the active theme to avoid Nextcloud-blue halos.
+ */
+export function getWindowBackgroundColor() {
+	try {
+		const theme = getAppConfig('theme')
+		return resolveMainBackground(theme, nativeTheme.shouldUseDarkColors)
+	} catch {
+		return resolveMainBackground('breezetwilight', nativeTheme.shouldUseDarkColors)
 	}
-})
+}
 
-ipcMain.on('app:prefersContrastMore:get', (event) => {
-	event.returnValue = nativeTheme.shouldUseHighContrastColors
-})
+export function applyWindowBackgrounds() {
+	const color = getWindowBackgroundColor()
+	for (const browserWindow of BrowserWindow.getAllWindows()) {
+		browserWindow.setBackgroundColor(color)
+	}
+}

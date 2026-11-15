@@ -20,6 +20,7 @@ import { appData } from '../../../app/AppData.js'
 import { checkCurrentUserHasPendingCall } from '../../../callbox/renderer/callbox.service.ts'
 import { getAppConfigValue } from '../../../shared/appConfig.service.ts'
 import { subscribeBroadcast } from '../../../shared/broadcast.service.ts'
+import { ENGawa_NOTIFICATION_ICON } from '../../../shared/notificationIcon.js'
 import { useAppConfigValue } from '../Settings/useAppConfigValue.ts'
 import { openConversation } from '../TalkWrapper/talk.service.ts'
 import { useUserStatusStore } from '../UserStatus/userStatus.store.ts'
@@ -188,6 +189,7 @@ export function createNotificationStore() {
 				lang: appData.userMetadata.locale,
 				body: notification.message,
 				tag: notification.notificationId,
+				icon: notification.icon || ENGawa_NOTIFICATION_ICON,
 				// We have a custom sound
 				silent: true,
 			})
@@ -220,7 +222,7 @@ export function createNotificationStore() {
 			lang: appData.userMetadata.locale,
 			body: notification.datetime,
 			tag: notification.notificationId,
-			icon: notification.icon,
+			icon: notification.icon || ENGawa_NOTIFICATION_ICON,
 			silent: true,
 		})
 		n.addEventListener('click', () => {
@@ -417,7 +419,7 @@ subscribeBroadcast('notifications:missedCall', ({ token, name, type, avatar }) =
 		? t('talk_desktop', 'You missed a call from {user}', { user: name })
 		: t('talk_desktop', 'You missed a group call in {call}', { call: name })
 	const notification = new Notification(title, {
-		icon: avatar,
+		icon: avatar || ENGawa_NOTIFICATION_ICON,
 		lang: appData.userMetadata.locale,
 		tag: Math.random().toString(36).slice(2, 6),
 		silent: true,

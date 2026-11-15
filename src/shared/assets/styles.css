@@ -4,6 +4,8 @@
  */
 
 @import '@global-styles/index.css';
+@import './breezetwilight.css';
+@import './engawa-notifications.css';
 
 * {
 	box-sizing: border-box;

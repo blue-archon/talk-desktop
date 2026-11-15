@@ -4,15 +4,15 @@
  */
 
 import axios from '@nextcloud/axios'
-import { isRTL, register, setLanguage, setLocale } from '@nextcloud/l10n'
+import { isRTL, register } from '@nextcloud/l10n'
 import { appData } from '../app/AppData.js'
 import { refetchAppData } from '../app/appData.service.js'
 import { TITLE_BAR_HEIGHT } from '../constants.js'
-import { getAppConfigValue, initAppConfig } from './appConfig.service.ts'
+import { initAppConfig } from './appConfig.service.ts'
+import { initDocumentTheme } from './documentTheme.service.ts'
 import { BUILD_CONFIG } from './build.config.ts'
 import { initGlobals } from './globals/globals.js'
 import { setupInitialState } from './initialState.service.js'
-import { setTheming } from './theme.utils.ts'
 
 /**
  * @param {string} lang - language code, TS type: `${lang}_${countryCode}`|`${lang}`
@@ -62,8 +62,8 @@ async function applyL10n() {
 
 	const canonicalLanguage = language.replaceAll('_', '-')
 
-	setLanguage(canonicalLanguage)
-	setLocale(locale)
+	document.documentElement.lang = canonicalLanguage
+	document.documentElement.dataset.locale = locale
 
 	console.info(`Using locale "${locale}" for language "${language}"`)
 
@@ -218,6 +218,11 @@ function getInitialStateFromCapabilities(capabilities, userMetadata) {
 			},
 			shortcutsDisabled: false, // MISSED
 		},
+		notifications: {
+			throttled_push_notifications: false, // MISSED
+			sound_talk: true, // MISSED
+			sound_notification: true, // MISSED
+		},
 		// user_status: {} - MISSED
 	}
 }
@@ -258,12 +263,8 @@ function applyDownloadLinkHandler() {
 export async function setupWebPage() {
 	appData.fromJSON(await window.TALK_DESKTOP.getAppData())
 	await initAppConfig()
+	initDocumentTheme()
 	await applyL10n()
-	setTheming({
-		colorScheme: getAppConfigValue('theme'),
-		highContrast: getAppConfigValue('highContrast'),
-		openDyslexic: getAppConfigValue('dyslexicFont'),
-	})
 	applyInitialState()
 	initGlobals()
 	applyUserData()

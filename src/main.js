@@ -18,8 +18,11 @@ const { triggerDownloadUrl } = require('./app/downloads.ts')
 const { setupReleaseNotificationScheduler, checkForUpdate } = require('./app/githubRelease.service.ts')
 const { setupLaunchAtStartup } = require('./app/launchAtStartup.config.ts')
 const { runMigrations } = require('./app/migration.service.ts')
-const { systemInfo, isMac, isWindows, isSameExecution, isSquirrel, relaunchApp } = require('./app/system.utils.ts')
-const { applyTheme } = require('./app/theme.config.ts')
+const { systemInfo, isLinux, isMac, isWindows, isSameExecution, isSquirrel, relaunchApp } = require('./app/system.utils.ts')
+const { applyTheme, initWindowBackgroundHandling } = require('./app/theme.config.ts')
+const { updateTrayBadge } = require('./app/trayBadge.service.js')
+const { restoreBrowserWindow } = require('./app/windowRestore.js')
+const { setTrayRestoreHandler } = require('./app/trayRestore.service.js')
 const { buildTitle, onReadyToShow } = require('./app/utils.ts')
 const { enableWebRequestInterceptor, disableWebRequestInterceptor } = require('./app/webRequestInterceptor.js')
 const { createAuthenticationWindow } = require('./authentication/authentication.window.ts')
@@ -32,6 +35,12 @@ const { createUpgradeWindow } = require('./upgrade/upgrade.window.ts')
 const { createWelcomeWindow } = require('./welcome/welcome.window.ts')
 
 const argv = mri(process.argv.slice(app.isPackaged ? 1 : 2))
+
+// Electron with Chromium 136+ mixes GTK3 and GTK4 and breaks on GNOME.
+// Force GTK3. https://github.com/electron/electron/issues/46538
+if (isLinux) {
+	app.commandLine.appendSwitch('gtk-version', '3')
+}
 
 /**
  * On production use executable name as application name to allow several independent application instances.
@@ -75,7 +84,10 @@ ipcMain.handle('app:getSystemL10n', () => ({
 }))
 ipcMain.handle('app:enableWebRequestInterceptor', (event, ...args) => enableWebRequestInterceptor(...args))
 ipcMain.handle('app:disableWebRequestInterceptor', (event, ...args) => disableWebRequestInterceptor(...args))
-ipcMain.handle('app:setBadgeCount', async (event, count) => app.setBadgeCount(count))
+ipcMain.handle('app:setBadgeCount', async (event, count) => {
+	app.setBadgeCount(count)
+	updateTrayBadge(count)
+})
 ipcMain.on('app:relaunch', () => relaunchApp())
 ipcMain.handle('app:config:get', (event, key) => getAppConfig(key))
 ipcMain.handle('app:config:set', (event, key, value) => setAppConfig(key, value))
@@ -128,6 +140,7 @@ app.whenReady().then(async () => {
 	await cli(argv)
 
 	applyTheme()
+	initWindowBackgroundHandling()
 	setupLaunchAtStartup()
 	registerAppProtocolHandler()
 	setupReleaseNotificationScheduler(24 * 60)
@@ -140,6 +153,13 @@ app.whenReady().then(async () => {
 	} catch (error) {
 		console.log('Unable to install Vue Devtools')
 		console.error(error)
+	}
+
+	if (process.env.NODE_ENV === 'development') {
+		console.log()
+		console.log('Nextcloud Talk is running via development server')
+		console.log('Hint: type "rs" to restart app without restarting the build')
+		console.log()
 	}
 
 	// TODO: add windows manager
@@ -167,14 +187,10 @@ app.whenReady().then(async () => {
 			return
 		}
 
-		// The window is minimized - restore
-		if (mainWindow.isMinimized()) {
-			mainWindow.restore()
-		}
-
-		// Show the window in case it is hidden in the system tray and focus it
-		mainWindow.show()
+		restoreBrowserWindow(mainWindow)
 	}
+
+	setTrayRestoreHandler(focusMainWindow)
 
 	/**
 	 * Instead of creating a new app instance - focus existence one
@@ -329,8 +345,7 @@ app.whenReady().then(async () => {
 	// Click on the dock icon on macOS
 	app.on('activate', () => {
 		if (mainWindow && !mainWindow.isDestroyed()) {
-			// Show the main window if it exists but hidden (not closed), e.g., minimized to the system tray
-			mainWindow.show()
+			restoreBrowserWindow(mainWindow)
 		} else {
 			// On macOS, it is common to re-create a window in the app when the
 			// dock icon is clicked and there are no other windows open.

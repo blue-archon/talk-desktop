@@ -140,25 +140,27 @@ function dismiss() {
 	gap: var(--gap);
 	padding: var(--gap);
 	user-select: none;
-	backdrop-filter: blur(12px);
-	background: rgba(0, 0, 0, .2);
-	color: var(--color-background-plain-text);
+	border-radius: var(--border-radius-container);
+	border: 1px solid rgba(198, 108, 47, 0.45);
+	background: linear-gradient(145deg, rgba(154, 92, 46, 0.97) 0%, rgba(127, 74, 36, 0.98) 100%);
+	box-shadow: 0 8px 24px rgba(76, 42, 20, 0.35);
+	color: #ffffff;
 	-webkit-app-region: drag;
 
-	/* FIXME: hotfix for the broken success/danger buttons on the dark theme */
 	.button-vue--success {
-		border-color: var(--join-call-border-color);
-		background-color: var(--join-call-background-color);
-		color: var(--color-primary-element-text);
+		border-color: #d8f3da;
+		background-color: #099f05;
+		color: #ffffff;
 
 		&:hover:not(:disabled) {
-			background-color: var(--join-call-border-color) !important;
+			background-color: #0bb307 !important;
 		}
 	}
 
 	.button-vue--error {
-		background-color: #FF3333; /* Nextcloud 31 --color-error */
-		color: var(--color-primary-text);
+		background-color: #c90000;
+		border-color: #ffc3c3;
+		color: #ffffff;
 	}
 }
 
@@ -204,10 +206,10 @@ function dismiss() {
 
 @keyframes pulse-shadow {
 	0% {
-		box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+		box-shadow: 0 0 0 0 rgba(198, 108, 47, 0.85);
 	}
 	100% {
-		box-shadow: 0 0 0 calc(var(--gap) - var(--default-grid-baseline)) rgba(255, 255, 255, 0);
+		box-shadow: 0 0 0 calc(var(--gap) - var(--default-grid-baseline)) rgba(198, 108, 47, 0);
 	}
 }
 </style>

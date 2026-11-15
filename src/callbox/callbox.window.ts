@@ -7,7 +7,7 @@ import { BrowserWindow, screen } from 'electron'
 import { getAppConfig } from '../app/AppConfig.ts'
 import { isMac, isWindows } from '../app/system.utils.ts'
 import { applyZoom, getScaledWindowSize, getWindowUrl, onReadyToShow } from '../app/utils.ts'
-import { BUILD_CONFIG } from '../shared/build.config.ts'
+import { getWindowBackgroundColor } from '../app/theme.config.ts'
 import { getBrowserWindowIcon } from '../shared/icons.utils.js'
 
 export type CallboxParams = {
@@ -45,7 +45,7 @@ export function createCallboxWindow(params: CallboxParams) {
 		acceptFirstMouse: true,
 		alwaysOnTop: true,
 		autoHideMenuBar: true,
-		backgroundColor: BUILD_CONFIG.backgroundColor,
+		backgroundColor: getWindowBackgroundColor(),
 		frame: false,
 		fullscreenable: false,
 		icon: getBrowserWindowIcon(),

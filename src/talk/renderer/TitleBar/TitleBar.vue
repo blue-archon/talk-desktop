@@ -45,7 +45,7 @@ const { isDevMode } = useDevMode()
 				<DevMenu />
 			</div>
 
-			<div class="title-bar__item title-bar__main-menu-container" data-theme-dark>
+			<div class="title-bar__item" data-theme-dark>
 				<MainMenu />
 			</div>
 
@@ -62,6 +62,7 @@ const { isDevMode } = useDevMode()
 	height: var(--header-height);
 	margin-bottom: calc(-1 * var(--header-height));
 	box-sizing: border-box;
+	background: var(--gradient-primary-background, var(--color-background-plain));
 	color: var(--color-background-plain-text);
 	user-select: none;
 }
@@ -104,12 +105,5 @@ const { isDevMode } = useDevMode()
 	flex: 1 0 auto;
 	height: 100%;
 	-webkit-app-region: drag;
-}
-
-.title-bar__main-menu-container {
-	/* Increase the trigger button size to fill the title bar except for 4px paddings */
-	/* Aligns NcAction's popover with the title bar with 4px distance */
-	/* TODO: instead, either add distance prop to NcActions or decrease the title bar size to 34px + 4px * 2 */
-	--default-clickable-area: 38px;
 }
 </style>

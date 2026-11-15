@@ -65,7 +65,7 @@ export const isWindows = os.type() === 'Windows_NT'
  *
  * @todo is it better than checking for XDG_SESSION_TYPE === 'wayland'?
  */
-export const isWayland = !!process.env.WAYLAND_DISPLAY
+export const isWayland = process.env.XDG_SESSION_TYPE === 'wayland' || !!process.env.WAYLAND_DISPLAY
 
 /**
  * Is the app running inside Flatpak sandbox?

@@ -13,6 +13,7 @@ import NcRadioGroup from '@nextcloud/vue/components/NcRadioGroup'
 import NcRadioGroupButton from '@nextcloud/vue/components/NcRadioGroupButton'
 import IconThemeLightDark from 'vue-material-design-icons/ThemeLightDark.vue'
 import IconWeatherNight from 'vue-material-design-icons/WeatherNight.vue'
+import IconPalette from 'vue-material-design-icons/Palette.vue'
 import IconWeatherSunny from 'vue-material-design-icons/WeatherSunny.vue'
 import DesktopSettingsSectionRelaunchNote from './components/DesktopSettingsSectionRelaunchNote.vue'
 import UiFormBoxAudioOutput from './components/UiFormBoxAudioOutput.vue'
@@ -25,6 +26,7 @@ import { useLaunchAtStartup } from './useLaunchAtStartup.ts'
 import { useTristateToggle } from './useTristateToggle.ts'
 
 const isLinux = window.systemInfo.isLinux
+const isWayland = window.systemInfo.isWayland
 
 const { isRelaunchRequired } = storeToRefs(useAppConfigStore())
 
@@ -95,12 +97,17 @@ const secondarySpeakerDevice = useAppConfigValue('secondarySpeakerDevice')
 					<IconWeatherNight :size="20" />
 				</template>
 			</NcRadioGroupButton>
+			<NcRadioGroupButton :label="t('talk_desktop', 'Breeze Twilight')" value="breezetwilight">
+				<template #icon>
+					<IconPalette :size="20" />
+				</template>
+			</NcRadioGroupButton>
 		</NcRadioGroup>
 
 		<NcFormGroup :label="t('talk_desktop', 'System integration')">
 			<NcFormBox>
 				<NcFormBoxSwitch v-model="monochromeTrayIcon" :label="t('talk_desktop', 'Use monochrome tray icon')" />
-				<NcFormBoxSwitch v-model="systemTitleBar" :label="t('talk_desktop', 'Use system title bar')" />
+				<NcFormBoxSwitch v-if="!isWayland" v-model="systemTitleBar" :label="t('talk_desktop', 'Use system title bar')" />
 			</NcFormBox>
 		</NcFormGroup>
 

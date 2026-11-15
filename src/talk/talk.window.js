@@ -12,7 +12,7 @@ const { applyExternalLinkHandler } = require('../app/externalLinkHandlers.ts')
 const { getScaledWindowMinSize, getScaledWindowSize, applyZoom, buildTitle, getWindowUrl, getTitleBarSymbolColor } = require('../app/utils.ts')
 const { applyWheelZoom } = require('../app/zoom.service.ts')
 const { TITLE_BAR_HEIGHT } = require('../constants.js')
-const { BUILD_CONFIG } = require('../shared/build.config.ts')
+const { getWindowBackgroundColor } = require('../app/theme.config.ts')
 const { getBrowserWindowIcon } = require('../shared/icons.utils.js')
 
 /**
@@ -27,7 +27,7 @@ function createTalkWindow() {
 			minWidth: 600,
 			minHeight: 400,
 		}),
-		backgroundColor: BUILD_CONFIG.backgroundColor,
+		backgroundColor: getWindowBackgroundColor(),
 		autoHideMenuBar: true,
 		webPreferences: {
 			preload: TALK_DESKTOP__WINDOW_TALK_PRELOAD_WEBPACK_ENTRY,
@@ -53,8 +53,6 @@ function createTalkWindow() {
 			width: 1400,
 			height: 900,
 		}),
-		name: 'talk-primary',
-		windowStatePersistence: true,
 		show: false,
 	})
 
@@ -71,10 +69,6 @@ function createTalkWindow() {
 			width: 800,
 			height: 600,
 		}),
-		// Window state is only saved for the primary window
-		// TODO: consider saving state per conversation
-		// Saving the same state for all the secondary windows at once is not possible in Electron
-		windowStatePersistence: false,
 	})
 
 	applyContextMenu(window)

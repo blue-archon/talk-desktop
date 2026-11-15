@@ -8,7 +8,7 @@ import { readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { BUILD_CONFIG } from '../shared/build.config.ts'
 import { readManagedConfig } from './managedConfig.service.ts'
-import { isMac } from './system.utils.ts'
+import { isMac, isWayland } from './system.utils.ts'
 
 const APP_CONFIG_FILE_NAME = 'config.json'
 
@@ -78,7 +78,7 @@ export type AppConfig = {
 	 * Color scheme (dark mode).
 	 * Default: 'default' to follow the system settings.
 	 */
-	theme: 'default' | 'dark' | 'light'
+	theme: 'default' | 'dark' | 'light' | 'breezetwilight'
 	/**
 	 * Contrast preferences: whether to follow the system settings, enable (enforce) or disable (suppress) high contrast.
 	 * Default: 'default'.
@@ -163,7 +163,7 @@ const defaultAppConfig: AppConfig = {
 	launchAtStartupInBackground: true,
 	releaseChannel: __CHANNEL__ === 'stable' ? 'stable' : 'beta',
 	skipUpdateCheck: false,
-	theme: 'default',
+	theme: 'breezetwilight',
 	highContrast: 'default',
 	dyslexicFont: false,
 	systemTitleBar: false,
@@ -189,6 +189,8 @@ const managedAppConfig = readManagedConfig()
  */
 const enforcedAppConfig: Partial<AppConfig> = {
 	...(BUILD_CONFIG.isBranded ? { skipUpdateCheck: true } : {}),
+	// Electron custom title bar is broken on Wayland: https://github.com/electron/electron/issues/49244
+	...(isWayland ? { systemTitleBar: false } : {}),
 }
 
 /** Local cache of the config file mixed with the default values */
